@@ -19,6 +19,7 @@ func serveHTTP(laddr string) error {
 func init() {
 	router.PanicHandler = panicHandler
 	router.GET("/search/:q", search)
+	router.GET("/search", search)
 }
 
 // @Private reason
