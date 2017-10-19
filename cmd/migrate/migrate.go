@@ -12,8 +12,8 @@ import (
 func main() {
 	initDB()
 	opts := badger.DefaultOptions
-	opts.Dir = os.Args[1]
-	opts.ValueDir = os.Args[1]
+	opts.Dir = os.Args[2]
+	opts.ValueDir = os.Args[2]
 	db, err := badger.Open(opts)
 	if err != nil {
 		log.Fatalln(err)
@@ -40,7 +40,7 @@ var (
 )
 
 func initDB() error {
-	file := os.Args[0]
+	file := os.Args[1]
 	db, err := bolt.Open(file, 0600, &bolt.Options{Timeout: 3600 * time.Second})
 	if err != nil {
 		return err
