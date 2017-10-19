@@ -16,7 +16,7 @@ import (
 
 var (
 	_index     = engine.Engine{}
-	_indexChan = make(chan *MetadataInfo, 128)
+	_indexChan = make(chan *MetadataInfo, 10000)
 )
 
 func close() {
@@ -77,7 +77,7 @@ func doIndex() {
 	flushIndex()
 	var count = 0
 	for {
-		if count >= 128 {
+		if count >= 1000 {
 			flushIndex()
 			count = 0
 		}
