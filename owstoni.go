@@ -16,12 +16,15 @@ var (
 	rpcAddr string
 	logfile string
 	ow      *owstoni
+	laddr   string
 )
 
 func init() {
 	flag.StringVar(&workdir, "workdir", "/var/lib/owstoni", "work directory")
 	flag.StringVar(&logfile, "logfile", "stdout", "log file")
 	flag.StringVar(&rpcAddr, "rpcAddr", ":7700", "rpc address")
+	flag.StringVar(&laddr, "laddr", ":8800", "http address")
+	flag.Parse()
 	snow, err := NewNode(int64(rand.Intn(1023)))
 	if err != nil {
 		panic(err)
@@ -63,7 +66,9 @@ func ListenAndServe() error {
 	ow = &owstoni{ch: make(chan *Event, 100)}
 	RegisterOwstoniServiceServer(s, ow)
 	info("Owstoni Listen at", l.Addr().String())
-	return s.Serve(l)
+	go s.Serve(l)
+	info("Owstoni Http Listen at", laddr)
+	return serveHTTP(laddr)
 }
 
 type owstoni struct {
