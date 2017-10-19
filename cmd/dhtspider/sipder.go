@@ -32,7 +32,6 @@ func main() {
 			if err != nil {
 				continue
 			}
-			log.Println("元数据", metadata)
 			info := metadata.(map[string]interface{})
 			if _, ok := info["name"]; !ok {
 				continue
@@ -43,6 +42,7 @@ func main() {
 				Degree:      1,
 				CollectTime: time.Now().Unix(),
 			}
+			log.Println("下载了一条元数据", mi)
 
 			if v, ok := info["files"]; ok {
 				if files, ok := v.([]interface{}); ok {
@@ -83,7 +83,7 @@ func main() {
 	config.PrimeNodes = []string{"router.bittorrent.com:6881",
 		"dht.transmissionbt.com:6881"}
 	config.OnAnnouncePeer = func(infoHash, ip string, port int) {
-		log.Println("接收到一条Infohash", infoHash, ip, port)
+		log.Println("接收到一条Infohash", hex.EncodeToString([]byte(infoHash)), ip, port)
 		w.Request([]byte(infoHash), ip, port)
 	}
 	d := dht.New(config)
