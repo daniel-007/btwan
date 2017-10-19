@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"log"
 	"strings"
 	"time"
@@ -70,8 +69,8 @@ func main() {
 				}
 			}
 			if (mi.Length > 0 || len(mi.Files) > 0) && strings.TrimSpace(mi.Name) != "" {
-				log.Println("下载了一条元数据", mi.String())
-				client.Index(context.Background(), &mi)
+				_, err := client.Index(context.Background(), &mi)
+				log.Println("索引一条元数据", mi.String(), err)
 			}
 		}
 	}()
@@ -90,7 +89,7 @@ func main() {
 	go func() {
 		for {
 			event, err := recv.Recv()
-			if err == io.EOF {
+			if err != nil {
 				time.Sleep(5 * time.Second)
 				continue
 			}

@@ -114,6 +114,7 @@ func (o *owstoni) Index(_ context.Context, m *MetadataInfo) (*Void, error) {
 	if err := m.save(); err != nil {
 		return nil, err
 	}
+	info("to.Index", m)
 	_indexChan <- m
 	return &Void{}, nil
 }

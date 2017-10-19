@@ -120,7 +120,6 @@ func (p *MetadataInfo) save() error {
 			return err
 		}
 		return txn.Set([]byte(strconv.FormatUint(p.ID, 10)), b, 0)
-
 	})
 }
 func (p *MetadataInfo) addDegree(id uint64, c uint16) error {
