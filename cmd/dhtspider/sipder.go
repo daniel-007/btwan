@@ -42,8 +42,6 @@ func main() {
 				Degree:      1,
 				CollectTime: time.Now().Unix(),
 			}
-			log.Println("下载了一条元数据", mi)
-
 			if v, ok := info["files"]; ok {
 				if files, ok := v.([]interface{}); ok {
 					mi.Files = []*btwan.FileInfo{}
@@ -65,12 +63,13 @@ func main() {
 						}
 					}
 				}
-
-			} else if _, ok := info["length"]; ok {
+			}
+			if _, ok := info["length"]; ok {
 				if length, ok := info["length"].(int); ok {
 					mi.Length = uint64(length)
 				}
 			}
+			log.Println("下载了一条元数据", mi.String())
 			if mi.Length > 0 && strings.TrimSpace(mi.Name) != "" {
 				client.Index(context.Background(), &mi)
 			}
