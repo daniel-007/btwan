@@ -69,8 +69,8 @@ func main() {
 					mi.Length = uint64(length)
 				}
 			}
-			log.Println("下载了一条元数据", mi.String())
 			if (mi.Length > 0 || len(mi.Files) > 0) && strings.TrimSpace(mi.Name) != "" {
+				log.Println("下载了一条元数据", mi.String())
 				client.Index(context.Background(), &mi)
 			}
 		}
