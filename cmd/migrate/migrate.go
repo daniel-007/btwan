@@ -24,9 +24,12 @@ func main() {
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			log.Println(string(k), string(v))
-			return db.Update(func(txn *badger.Txn) error {
+			err := db.Update(func(txn *badger.Txn) error {
 				return txn.Set(k, v, 0)
 			})
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})
