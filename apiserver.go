@@ -18,7 +18,7 @@ func serveHTTP(laddr string) error {
 }
 func init() {
 	router.PanicHandler = panicHandler
-	router.GET("/search/:s", search)
+	router.GET("/search/:q", search)
 }
 
 // @Private reason
@@ -28,9 +28,9 @@ func panicHandler(w http.ResponseWriter, _ *http.Request, err interface{}) {
 }
 
 func search(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	q := p.ByName("s")
+	q := p.ByName("q")
 	if q == "" {
-		q = r.FormValue("s")
+		q = r.FormValue("q")
 	}
 	offset := r.FormValue("offset")
 	limit := r.FormValue("limit")
