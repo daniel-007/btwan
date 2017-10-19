@@ -76,12 +76,11 @@ func flushIndex() error {
 func doIndex() {
 	flushIndex()
 	var count = 0
-	for {
+	for meta := range _indexChan {
 		if count >= 1000 {
 			flushIndex()
 			count = 0
 		}
-		meta := <-_indexChan
 		info("index", len(_indexChan), meta)
 		if meta != nil {
 			_index.IndexDocument(meta.ID, types.DocumentIndexData{
