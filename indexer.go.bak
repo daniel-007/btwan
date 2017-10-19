@@ -1,0 +1,95 @@
+package btwan
+
+import (
+	"time"
+
+	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
+	"github.com/yanyiwu/gojieba"
+	_ "github.com/yanyiwu/gojieba/bleve"
+)
+
+var (
+	idx bleve.Index
+)
+
+func initIndex() error {
+	file := workdir + "/owstoni.index"
+	keyField := bleve.NewTextFieldMapping()
+	keyField.Analyzer = keyword.Name
+	notAnalyzerField := bleve.NewDocumentDisabledMapping()
+
+	numberField := bleve.NewNumericFieldMapping()
+
+	txtField := bleve.NewTextFieldMapping()
+	txtField.Analyzer = "gojieba"
+
+	docMapping := bleve.NewDocumentMapping()
+	docMapping.AddFieldMappingsAt("Id", keyField)
+	docMapping.AddFieldMappingsAt("Name", txtField)
+	docMapping.AddFieldMappingsAt("CreateDate", numberField)
+	docMapping.AddFieldMappingsAt("Size", numberField)
+	docMapping.AddFieldMappingsAt("Files", numberField)
+	docMapping.AddSubDocumentMapping("Body", notAnalyzerField)
+
+	mapping := bleve.NewIndexMapping()
+	mapping.AddDocumentMapping("infohash", docMapping)
+	err := mapping.AddCustomTokenizer("gojieba",
+		map[string]interface{}{
+			"dictpath":     gojieba.DICT_PATH,
+			"hmmpath":      gojieba.HMM_PATH,
+			"userdictpath": gojieba.USER_DICT_PATH,
+			"type":         "gojieba",
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+	err = mapping.AddCustomAnalyzer("gojieba",
+		map[string]interface{}{
+			"type":      "gojieba",
+			"tokenizer": "gojieba",
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+	mapping.DefaultAnalyzer = "gojieba"
+	index, err := bleve.Open(file)
+	if err == bleve.ErrorIndexPathDoesNotExist {
+		index, err = bleve.New(file, mapping)
+	}
+
+	idx = index
+	return err
+}
+
+func index(m *MetadataInfo) error {
+	msg := struct {
+		ID         string
+		Name       string
+		Files      uint16
+		Size       uint64
+		Body       string
+		CreateDate int64
+	}{
+		ID:         m.InfoHash,
+		Name:       m.Name,
+		Files:      uint16(len(m.Files)),
+		Size:       m.Length,
+		Body:       m.jsonString(),
+		CreateDate: time.Now().Unix(),
+	}
+	return idx.Index(m.InfoHash, msg)
+}
+
+func search(key string, from, size int) {
+	var r bleve.SearchRequest
+	r.Fields = []string{"Name"}
+	r.From = from
+	r.Size = size
+	r.Query = bleve.NewQueryStringQuery(key)
+	r.SortBy([]string{"Size desc", "CreateDate desc"})
+	result, _ := idx.Search(&r)
+	info(result.String())
+}

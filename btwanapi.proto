@@ -1,0 +1,64 @@
+
+syntax = "proto3";
+
+package btwan;
+
+
+message Void {}
+
+message InfoHash {
+    string ih = 1;
+	uint64 ID = 2;
+}
+
+message FileInfo {
+	repeated string path = 1;
+	uint64 length = 2;          
+}
+
+message MetadataInfo {
+	uint64 ID = 1;
+	string infoHash = 2;
+	string name = 3;
+	repeated FileInfo files = 4;
+	uint64 length = 5;
+	int64 collectTime = 6;
+	int64 indexTime = 7;
+	uint64 degree = 8;
+	uint64 reviews = 9;
+	uint64 follows = 10;
+	uint64 thumbs = 11;
+	uint64 seeders = 12;
+	uint64 downloaders = 13;
+}
+
+
+message SearchReq {
+	 string q =1;
+	 uint32 offset = 2;
+	 uint32 limit = 3;
+}
+
+message SearchResp {
+	 SearchReq request = 1;
+	 uint32 totalCount = 2;
+	 uint32 count = 3; 
+	 uint32 took = 4;
+	 repeated MetadataInfo metainfos = 5;
+}
+
+message Event {
+	string type = 1;
+	map<string, string> attributes = 2;
+}
+
+service OwstoniService {
+  rpc Send (stream Event) returns (Void) {}
+  rpc Recv (Void) returns (stream Event) {}
+  rpc SendInfoHash (InfoHash) returns (Void) {}
+  rpc GetMetadataInfo (InfoHash) returns (MetadataInfo) {}
+  rpc Index(MetadataInfo) returns (Void) {}
+  rpc Search (SearchReq) returns (SearchResp) {}
+}
+
+

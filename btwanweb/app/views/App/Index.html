@@ -1,0 +1,31 @@
+{{set . "title" "BT湾-磁力链接搜索"}}
+{{template "header.html" .}}
+
+<header class="hero-unit" style="background-color:#A9F16C">
+  <div class="container">
+    <div class="row">
+      <div class="hero-text">
+        <h1>BT湾</h1>
+        <p></p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="row">
+    <div class="span6">
+      {{template "flash.html" .}}
+    </div>
+  </div>
+  <div class="row">
+      <form id="searchFrom" class="Search_home" action="/s">
+        <input type="text"name="q" autocomplete="off" placeholder="你想找什么资源？今天新增 4768 个种子" style="width:400px"/>
+        <button >搜索
+        <i class="fa fa-search"></i>
+        </button>
+      </form>
+    </div>
+</div>
+
+{{template "footer.html" .}}
