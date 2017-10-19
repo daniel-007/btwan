@@ -118,7 +118,7 @@ func (o *owstoni) Index(_ context.Context, m *MetadataInfo) (*Void, error) {
 	return &Void{}, nil
 }
 func (o *owstoni) Search(_ context.Context, req *SearchReq) (*SearchResp, error) {
-	info(req)
+
 	resp := searchIndex(req.Q, int(req.Offset), int(req.Limit))
 	result := SearchResp{}
 	result.Request = req
@@ -128,6 +128,7 @@ func (o *owstoni) Search(_ context.Context, req *SearchReq) (*SearchResp, error)
 	for _, doc := range resp.Docs {
 		ids = append(ids, doc.DocId)
 	}
+	info(req, ids)
 	ms, err := findMetadata(ids)
 	if err != nil {
 		fatal(err)
