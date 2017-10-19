@@ -25,14 +25,14 @@ func main() {
 
 	client = btwan.NewOwstoniServiceClient(conn)
 
-	w := dht.NewWire(65536, 512, 128)
+	w := dht.NewWire(65536, 1024, 256)
 	go func() {
 		for resp := range w.Response() {
 			metadata, err := dht.Decode(resp.MetadataInfo)
 			if err != nil {
 				continue
 			}
-
+			log.Println("元数据", metadata)
 			info := metadata.(map[string]interface{})
 			if _, ok := info["name"]; !ok {
 				continue
@@ -80,7 +80,10 @@ func main() {
 
 	config := dht.NewCrawlConfig()
 	config.Address = ":6881"
+	config.PrimeNodes = []string{"router.bittorrent.com:6881",
+		"dht.transmissionbt.com:6881"}
 	config.OnAnnouncePeer = func(infoHash, ip string, port int) {
+		log.Println("接收到一条Infohash", infoHash, ip, port)
 		w.Request([]byte(infoHash), ip, port)
 	}
 	d := dht.New(config)
