@@ -40,7 +40,7 @@ func search(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if off < 0 {
 		off = 0
 	}
-	if lim <= 0 {
+	if lim <= 0 || lim > 100 {
 		lim = 10
 	}
 	req := &SearchReq{Q: q, Offset: uint32(off), Limit: uint32(lim)}
