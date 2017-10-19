@@ -2,10 +2,13 @@ package btwan
 
 import (
 	"encoding/gob"
+	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"reflect"
 	"strings"
+	"syscall"
 
 	"github.com/huichen/wukong/engine"
 	"github.com/huichen/wukong/types"
@@ -43,6 +46,14 @@ func _initIndexer() error {
 	return nil
 }
 
+func sign() {
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2)
+	s := <-c
+	log.Println("退出信号", s)
+	close()
+}
+
 func dicts() string {
 	dict := []string{}
 	filepath.Walk(workdir+"/dict", func(path string, info os.FileInfo, err error) error {
@@ -63,6 +74,7 @@ func flushIndex() error {
 }
 
 func doIndex() {
+	flushIndex()
 	var count = 0
 	for {
 		if count >= 128 {
