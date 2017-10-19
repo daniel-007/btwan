@@ -110,7 +110,7 @@ func (o *owstoni) GetMetadataInfo(_ context.Context, ih *InfoHash) (*MetadataInf
 
 }
 func (o *owstoni) Index(_ context.Context, m *MetadataInfo) (*Void, error) {
-	info("request.Index", m)
+	//info("request.Index", m)
 	if err := m.save(); err != nil {
 		return nil, err
 	}

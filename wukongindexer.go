@@ -82,7 +82,7 @@ func doIndex() {
 			count = 0
 		}
 		meta := <-_indexChan
-		info("index", meta)
+		info("index", len(_indexChan), meta)
 		if meta != nil {
 			_index.IndexDocument(meta.ID, types.DocumentIndexData{
 				Content: meta.Name,
