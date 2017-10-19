@@ -62,8 +62,7 @@ func (p *MetadataInfo) toBytes() ([]byte, error) {
 }
 
 func (p *MetadataInfo) fromBytes(b []byte) error {
-	err := json.Unmarshal(b, p)
-	return err
+	return json.Unmarshal(b, p)
 }
 func (p *MetadataInfo) save() error {
 	return _db.Update(func(tx *bolt.Tx) error {
