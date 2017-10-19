@@ -70,7 +70,7 @@ func main() {
 				}
 			}
 			log.Println("下载了一条元数据", mi.String())
-			if mi.Length > 0 && strings.TrimSpace(mi.Name) != "" {
+			if (mi.Length > 0 || len(mi.Files) > 0) && strings.TrimSpace(mi.Name) != "" {
 				client.Index(context.Background(), &mi)
 			}
 		}
