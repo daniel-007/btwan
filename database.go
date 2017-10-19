@@ -4,32 +4,39 @@ import (
 	"encoding/json"
 	"strconv"
 	"sync/atomic"
-	"time"
 
-	"github.com/boltdb/bolt"
+	"github.com/dgraph-io/badger"
 )
 
 var (
-	_db          *bolt.DB
+	_db          *badger.DB
 	ihBucketName = []byte("infohash")
 )
 
 func initDB() error {
 	file := workdir + "/infohash.db"
-	db, err := bolt.Open(file, 0600, &bolt.Options{Timeout: 3600 * time.Second})
+	opts := badger.DefaultOptions
+	opts.Dir = file
+	opts.ValueDir = file
+
+	db, err := badger.Open(opts)
 	if err != nil {
 		return err
 	}
 	_db = db
-	return _db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists(ihBucketName)
-		return err
-	})
+	return nil
 }
 
 func getMetadata(id uint64) (t *MetadataInfo, err error) {
-	err = _db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(ihBucketName).Get([]byte(strconv.FormatUint(id, 10)))
+	err = _db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte(strconv.FormatUint(id, 10)))
+		if err != nil {
+			return err
+		}
+		b, err := item.Value()
+		if err != nil {
+			return err
+		}
 		t = new(MetadataInfo)
 		return t.fromBytes(b)
 	})
@@ -38,14 +45,22 @@ func getMetadata(id uint64) (t *MetadataInfo, err error) {
 
 func findMetadata(ids []uint64) (tms []*MetadataInfo, err error) {
 	tms = []*MetadataInfo{}
-	err = _db.View(func(tx *bolt.Tx) error {
+	err = _db.View(func(txn *badger.Txn) error {
 		for _, id := range ids {
-			b := tx.Bucket(ihBucketName).Get([]byte(strconv.FormatUint(id, 10)))
+			item, err := txn.Get([]byte(strconv.FormatUint(id, 10)))
+			if err != nil {
+				return err
+			}
+			b, err := item.Value()
+			if err != nil {
+				return err
+			}
 			t := new(MetadataInfo)
 			err = t.fromBytes(b)
-			if err == nil {
-				tms = append(tms, t)
+			if err != nil {
+				return err
 			}
+			tms = append(tms, t)
 		}
 		return nil
 	})
@@ -65,12 +80,26 @@ func (p *MetadataInfo) fromBytes(b []byte) error {
 	return json.Unmarshal(b, p)
 }
 func (p *MetadataInfo) save() error {
-	return _db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket(ihBucketName).Get([]byte(p.InfoHash))
+	return _db.Update(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte(p.InfoHash))
+		if err != nil {
+			return err
+		}
+		b, err := item.Value()
+		if err != nil {
+			return err
+		}
 		if len(b) > 0 {
-			bb := tx.Bucket(ihBucketName).Get(b)
+			item, err = txn.Get(b)
+			if err != nil {
+				return err
+			}
+			bb, err := item.Value()
+			if err != nil {
+				return err
+			}
 			t := new(MetadataInfo)
-			err := t.fromBytes(bb)
+			err = t.fromBytes(bb)
 			if err != nil {
 				return err
 			}
@@ -79,24 +108,31 @@ func (p *MetadataInfo) save() error {
 			if err != nil {
 				return err
 			}
-			return tx.Bucket(ihBucketName).Put(b, bb)
+			return txn.Set(b, bb, 0)
 		}
 		p.ID = uint64(GenrateID())
-		b, err := p.toBytes()
+		b, err = p.toBytes()
 		if err != nil {
 			return err
 		}
-		err = tx.Bucket(ihBucketName).Put([]byte(p.InfoHash), []byte(strconv.FormatUint(p.ID, 10)))
+		err = txn.Set([]byte(p.InfoHash), []byte(strconv.FormatUint(p.ID, 10)), 0)
 		if err != nil {
 			return err
 		}
-		return tx.Bucket(ihBucketName).Put([]byte(strconv.FormatUint(p.ID, 10)), b)
+		return txn.Set([]byte(strconv.FormatUint(p.ID, 10)), b, 0)
 
 	})
 }
 func (p *MetadataInfo) addDegree(id uint64, c uint16) error {
-	return _db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket(ihBucketName).Get([]byte(strconv.FormatUint(id, 10)))
+	return _db.Update(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte(strconv.FormatUint(id, 10)))
+		if err != nil {
+			return err
+		}
+		b, err := item.Value()
+		if err != nil {
+			return err
+		}
 		if b != nil && len(b) > 0 {
 			t := new(MetadataInfo)
 			err := t.fromBytes(b)
@@ -108,7 +144,7 @@ func (p *MetadataInfo) addDegree(id uint64, c uint16) error {
 			if err != nil {
 				return err
 			}
-			return tx.Bucket(ihBucketName).Put([]byte(strconv.FormatUint(id, 10)), b)
+			return txn.Set([]byte(strconv.FormatUint(id, 10)), b, 0)
 		}
 		return nil
 	})
