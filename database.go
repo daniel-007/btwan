@@ -82,6 +82,18 @@ func (p *MetadataInfo) fromBytes(b []byte) error {
 func (p *MetadataInfo) save() error {
 	return _db.Update(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(p.InfoHash))
+		if err == badger.ErrKeyNotFound {
+			p.ID = uint64(GenrateID())
+			b, err := p.toBytes()
+			if err != nil {
+				return err
+			}
+			err = txn.Set([]byte(p.InfoHash), []byte(strconv.FormatUint(p.ID, 10)), 0)
+			if err != nil {
+				return err
+			}
+			return txn.Set([]byte(strconv.FormatUint(p.ID, 10)), b, 0)
+		}
 		if err != nil {
 			return err
 		}
@@ -89,37 +101,25 @@ func (p *MetadataInfo) save() error {
 		if err != nil {
 			return err
 		}
-		if len(b) > 0 {
-			item, err = txn.Get(b)
-			if err != nil {
-				return err
-			}
-			bb, err := item.Value()
-			if err != nil {
-				return err
-			}
-			t := new(MetadataInfo)
-			err = t.fromBytes(bb)
-			if err != nil {
-				return err
-			}
-			atomic.AddUint64(&p.Degree, 1)
-			bb, err = t.toBytes()
-			if err != nil {
-				return err
-			}
-			return txn.Set(b, bb, 0)
-		}
-		p.ID = uint64(GenrateID())
-		b, err = p.toBytes()
+		item, err = txn.Get(b)
 		if err != nil {
 			return err
 		}
-		err = txn.Set([]byte(p.InfoHash), []byte(strconv.FormatUint(p.ID, 10)), 0)
+		bb, err := item.Value()
 		if err != nil {
 			return err
 		}
-		return txn.Set([]byte(strconv.FormatUint(p.ID, 10)), b, 0)
+		t := new(MetadataInfo)
+		err = t.fromBytes(bb)
+		if err != nil {
+			return err
+		}
+		atomic.AddUint64(&p.Degree, 1)
+		bb, err = t.toBytes()
+		if err != nil {
+			return err
+		}
+		return txn.Set(b, bb, 0)
 	})
 }
 func (p *MetadataInfo) addDegree(id uint64, c uint16) error {
