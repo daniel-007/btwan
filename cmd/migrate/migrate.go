@@ -23,7 +23,7 @@ func main() {
 		b := tx.Bucket([]byte("infohash"))
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
-			log.Println(string(k), string(v))
+			//log.Println(string(k), string(v))
 			err := db.Update(func(txn *badger.Txn) error {
 				return txn.Set(k, v, 0)
 			})
