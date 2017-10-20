@@ -9,6 +9,8 @@ import (
 	"golang.org/x/net/context"
 
 	"google.golang.org/grpc"
+	//fjlsafjsa
+	_ "github.com/yanyiwu/gojieba/bleve"
 )
 
 var (

@@ -11,8 +11,6 @@ import (
 
 	"github.com/blevesearch/bleve"
 	"github.com/yanyiwu/gojieba"
-	//fjlsafjsa
-	_ "github.com/yanyiwu/gojieba/bleve"
 )
 
 var indexMapping *mapping.IndexMappingImpl
@@ -32,7 +30,7 @@ func initIndex() error {
 		},
 	)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	err = indexMapping.AddCustomAnalyzer("gojieba",
 		map[string]interface{}{
@@ -41,12 +39,12 @@ func initIndex() error {
 		},
 	)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	indexMapping.DefaultAnalyzer = "gojieba"
 	indexer, err = bleve.New(workdir+"/index", indexMapping)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	go loop()
 	go sign()
