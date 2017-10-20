@@ -35,7 +35,10 @@ func initIndex() error {
 		panic(err)
 	}
 	indexMapping.DefaultAnalyzer = "sego"
-	indexer, err = bleve.New(workdir+"/index", indexMapping)
+	indexer, err = bleve.Open(workdir + "/index")
+	if err != nil {
+		indexer, err = bleve.New(workdir+"/index", indexMapping)
+	}
 	if err != nil {
 		panic(err)
 	}
