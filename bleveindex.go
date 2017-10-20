@@ -29,7 +29,7 @@ func initIndex() error {
 	// create a custom analyzer
 	err = indexMapping.AddCustomAnalyzer("sego",
 		map[string]interface{}{
-			"type":      "custom",
+			"type":      sego.Name,
 			"tokenizer": "sego",
 			"token_filters": []string{
 				"possessive_en",
