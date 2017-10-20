@@ -1,11 +1,8 @@
 package main
 
 import (
-	"log"
-
 	"btwan"
-
-	_ "github.com/yanyiwu/gojieba/bleve"
+	"log"
 )
 
 func main() {

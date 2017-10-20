@@ -11,6 +11,8 @@ import (
 
 	"github.com/blevesearch/bleve"
 	"github.com/yanyiwu/gojieba"
+	//fjlsafjsa
+	_ "github.com/yanyiwu/gojieba/bleve"
 )
 
 var indexMapping *mapping.IndexMappingImpl
