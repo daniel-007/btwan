@@ -62,7 +62,9 @@ func loop() {
 		}
 		if meta != nil {
 			err := indexer.Index(strconv.FormatUint(meta.ID, 10), meta)
-			info("index", len(_indexChan), meta, err)
+			if err != nil {
+				info("index", len(_indexChan), meta, err)
+			}
 			count++
 		}
 	}
