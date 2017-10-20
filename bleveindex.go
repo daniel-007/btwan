@@ -8,7 +8,6 @@ import (
 	"syscall"
 
 	"github.com/blevesearch/bleve"
-	sego "github.com/tukdesk/bleve-sego-tokenizer"
 )
 
 //var indexMapping *mapping.IndexMappingImpl
@@ -19,29 +18,22 @@ func initIndex() error {
 	indexMapping := bleve.NewIndexMapping()
 	err := indexMapping.AddCustomTokenizer("sego",
 		map[string]interface{}{
-			"files": workdir + "/dict",
-			"type":  sego.Name,
-		})
+			"dictpath": workdir + "/dict/dictionary.txt",
+			"type":     "sego",
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
-
-	// create a custom analyzer
 	err = indexMapping.AddCustomAnalyzer("sego",
 		map[string]interface{}{
-			"type":      sego.Name,
+			"type":      "sego",
 			"tokenizer": "sego",
-			"token_filters": []string{
-				"possessive_en",
-				"to_lower",
-				"stop_en",
-			},
-		})
-
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
-
 	indexMapping.DefaultAnalyzer = "sego"
 	indexer, err = bleve.New(workdir+"/index", indexMapping)
 	if err != nil {
