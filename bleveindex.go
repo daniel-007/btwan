@@ -60,7 +60,6 @@ func bleveSearch(q string, from, size int) (*bleve.SearchResult, error) {
 	return indexer.Search(req)
 }
 func loop() {
-
 	var count = 0
 	for meta := range _indexChan {
 		if count >= 1000 {
@@ -80,4 +79,5 @@ func sign() {
 	s := <-c
 	log.Println("退出信号", s)
 	indexer.Close()
+	os.Exit(0)
 }
