@@ -3,8 +3,8 @@ package btwan
 import (
 	"flag"
 	"io"
-	"math/rand"
 	"net"
+	"strconv"
 
 	"golang.org/x/net/context"
 
@@ -25,11 +25,6 @@ func init() {
 	flag.StringVar(&rpcAddr, "rpcAddr", ":7700", "rpc address")
 	flag.StringVar(&laddr, "laddr", ":8800", "http address")
 	flag.Parse()
-	snow, err := NewNode(int64(rand.Intn(1023)))
-	if err != nil {
-		panic(err)
-	}
-	snowflake = snow
 }
 
 func _init() error {
@@ -43,7 +38,7 @@ func _init() error {
 		return err
 	}
 
-	if err := _initIndexer(); err != nil {
+	if err := initIndex(); err != nil {
 		return err
 	}
 	return nil
@@ -111,7 +106,7 @@ func (o *owstoni) SendInfoHash(_ context.Context, ih *InfoHash) (*Void, error) {
 }
 
 func (o *owstoni) GetMetadataInfo(_ context.Context, ih *InfoHash) (*MetadataInfo, error) {
-	return getMetadata(ih.ID)
+	return getMetadata(strconv.FormatUint(ih.ID, 10))
 
 }
 func (o *owstoni) Index(_ context.Context, m *MetadataInfo) (*Void, error) {
@@ -123,16 +118,19 @@ func (o *owstoni) Index(_ context.Context, m *MetadataInfo) (*Void, error) {
 	return &Void{}, nil
 }
 func (o *owstoni) Search(_ context.Context, req *SearchReq) (*SearchResp, error) {
-
-	resp := searchIndex(req.Q, int(req.Offset), int(req.Limit))
+	resp, err := bleveSearch(req.Q, int(req.Offset), int(req.Limit))
+	if err != nil {
+		return nil, err
+	}
+	ids := []string{}
+	for _, item := range resp.Hits {
+		info(item.HitNumber, item.ID, item.Score, item.Sort, item.Fields)
+		info(item.String())
+		ids = append(ids, item.ID)
+	}
 	result := SearchResp{}
 	result.Request = req
-	result.TotalCount = uint32(resp.NumDocs)
-	result.Count = uint32(len(resp.Docs))
-	ids := []uint64{}
-	for _, doc := range resp.Docs {
-		ids = append(ids, doc.DocId)
-	}
+	result.TotalCount = uint32(resp.Total)
 	info(req, ids)
 	ms, err := findMetadata(ids)
 	if err != nil {
@@ -140,11 +138,4 @@ func (o *owstoni) Search(_ context.Context, req *SearchReq) (*SearchResp, error)
 	}
 	result.Metainfos = ms
 	return &result, nil
-}
-
-var snowflake *Node
-
-//GenrateID ....
-func GenrateID() int64 {
-	return snowflake.Generate().Int64()
 }

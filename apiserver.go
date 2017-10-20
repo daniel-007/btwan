@@ -44,19 +44,26 @@ func search(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		lim = 10
 	}
 	req := &SearchReq{Q: q, Offset: uint32(off), Limit: uint32(lim)}
-	resp := searchIndex(q, off, lim)
+	resp, err := bleveSearch(req.Q, int(req.Offset), int(req.Limit))
+	if err != nil {
+		fatal(err)
+		renderError(w, "检索错误", 422)
+		return
+	}
+	ids := []string{}
+	for _, item := range resp.Hits {
+		info(item.HitNumber, item.ID, item.Score, item.Sort, item.Fields)
+		info(item.String())
+		ids = append(ids, item.ID)
+	}
 	result := SearchResp{}
 	result.Request = req
-	result.TotalCount = uint32(resp.NumDocs)
-	result.Count = uint32(len(resp.Docs))
-	ids := []uint64{}
-	for _, doc := range resp.Docs {
-		ids = append(ids, doc.DocId)
-	}
+	result.TotalCount = uint32(resp.Total)
 	info(req, ids)
 	ms, err := findMetadata(ids)
 	if err != nil {
 		fatal(err)
+		renderError(w, "查询错误", 422)
 	}
 	result.Metainfos = ms
 	renderJSON(w, &result, 200)

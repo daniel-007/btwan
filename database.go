@@ -2,6 +2,7 @@ package btwan
 
 import (
 	"encoding/json"
+	"math/rand"
 	"strconv"
 	"sync/atomic"
 
@@ -24,12 +25,17 @@ func initDB() error {
 		return err
 	}
 	_db = db
+	snow, err := NewNode(int64(rand.Intn(1023)))
+	if err != nil {
+		panic(err)
+	}
+	snowflake = snow
 	return nil
 }
 
-func getMetadata(id uint64) (t *MetadataInfo, err error) {
+func getMetadata(id string) (t *MetadataInfo, err error) {
 	err = _db.View(func(txn *badger.Txn) error {
-		item, err := txn.Get([]byte(strconv.FormatUint(id, 10)))
+		item, err := txn.Get([]byte(id))
 		if err != nil {
 			return err
 		}
@@ -43,11 +49,11 @@ func getMetadata(id uint64) (t *MetadataInfo, err error) {
 	return
 }
 
-func findMetadata(ids []uint64) (tms []*MetadataInfo, err error) {
+func findMetadata(ids []string) (tms []*MetadataInfo, err error) {
 	tms = []*MetadataInfo{}
 	err = _db.View(func(txn *badger.Txn) error {
 		for _, id := range ids {
-			item, err := txn.Get([]byte(strconv.FormatUint(id, 10)))
+			item, err := txn.Get([]byte(id))
 			if err != nil {
 				return err
 			}
@@ -147,4 +153,11 @@ func (p *MetadataInfo) addDegree(id uint64, c uint16) error {
 		}
 		return nil
 	})
+}
+
+var snowflake *Node
+
+//GenrateID ....
+func GenrateID() int64 {
+	return snowflake.Generate().Int64()
 }

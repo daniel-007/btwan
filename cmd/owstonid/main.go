@@ -4,6 +4,8 @@ import (
 	"log"
 
 	"btwan"
+
+	_ "github.com/yanyiwu/gojieba/bleve"
 )
 
 func main() {
