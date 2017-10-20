@@ -7,18 +7,16 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/blevesearch/bleve/mapping"
-
 	"github.com/blevesearch/bleve"
 	"github.com/yanyiwu/gojieba"
 )
 
-var indexMapping *mapping.IndexMappingImpl
+//var indexMapping *mapping.IndexMappingImpl
 var indexer bleve.Index
 var _indexChan = make(chan *MetadataInfo, 10000)
 
 func initIndex() error {
-	indexMapping = bleve.NewIndexMapping()
+	indexMapping := bleve.NewIndexMapping()
 	err := indexMapping.AddCustomTokenizer("gojieba",
 		map[string]interface{}{
 			"dictpath":     gojieba.DICT_PATH,
