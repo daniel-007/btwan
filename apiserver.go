@@ -64,6 +64,7 @@ func search(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if err != nil {
 		fatal(err)
 		renderError(w, "查询错误", 422)
+		return
 	}
 	result.Metainfos = ms
 	renderJSON(w, &result, 200)
