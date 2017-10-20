@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/blevesearch/bleve"
-	"github.com/yanyiwu/gojieba"
+	sego "github.com/tukdesk/bleve-sego-tokenizer"
 )
 
 //var indexMapping *mapping.IndexMappingImpl
@@ -17,29 +17,32 @@ var _indexChan = make(chan *MetadataInfo, 10000)
 
 func initIndex() error {
 	indexMapping := bleve.NewIndexMapping()
-	err := indexMapping.AddCustomTokenizer("gojieba",
+	err := indexMapping.AddCustomTokenizer("sego",
 		map[string]interface{}{
-			"dictpath":     gojieba.DICT_PATH,
-			"hmmpath":      gojieba.HMM_PATH,
-			"userdictpath": gojieba.USER_DICT_PATH,
-			"idf":          gojieba.IDF_PATH,
-			"stop_words":   gojieba.STOP_WORDS_PATH,
-			"type":         "gojieba",
-		},
-	)
+			"files": workdir + "/dict",
+			"type":  sego.Name,
+		})
 	if err != nil {
 		panic(err)
 	}
-	err = indexMapping.AddCustomAnalyzer("gojieba",
+
+	// create a custom analyzer
+	err = indexMapping.AddCustomAnalyzer("sego",
 		map[string]interface{}{
-			"type":      "gojieba",
-			"tokenizer": "gojieba",
-		},
-	)
+			"type":      "custom",
+			"tokenizer": "sego",
+			"token_filters": []string{
+				"possessive_en",
+				"to_lower",
+				"stop_en",
+			},
+		})
+
 	if err != nil {
 		panic(err)
 	}
-	indexMapping.DefaultAnalyzer = "gojieba"
+
+	indexMapping.DefaultAnalyzer = "sego"
 	indexer, err = bleve.New(workdir+"/index", indexMapping)
 	if err != nil {
 		panic(err)
