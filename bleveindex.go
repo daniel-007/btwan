@@ -63,9 +63,7 @@ func loop() {
 		case meta := <-_indexChan:
 			if batch.Size() >= 1000 {
 				err := indexer.Batch(batch)
-				if err != nil {
-					info("index", batch.Size(), err)
-				}
+				info("index", batch.Size(), err)
 				batch.Reset()
 			}
 			err := batch.Index(strconv.FormatUint(meta.ID, 10), meta)
@@ -74,9 +72,7 @@ func loop() {
 			}
 		case <-time.After(60 * time.Second):
 			err := indexer.Batch(batch)
-			if err != nil {
-				info("index", batch.Size(), err)
-			}
+			info("index", batch.Size(), err)
 			batch.Reset()
 		}
 	}
