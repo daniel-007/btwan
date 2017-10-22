@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"strconv"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -111,6 +112,9 @@ func (o *owstoni) GetMetadataInfo(_ context.Context, ih *InfoHash) (*MetadataInf
 }
 func (o *owstoni) Index(_ context.Context, m *MetadataInfo) (*Void, error) {
 	//info("request.Index", m)
+	if strings.ContainsAny(m.Name, "�") {
+		return &Void{}, nil
+	}
 	if err := m.save(); err != nil {
 		return nil, err
 	}

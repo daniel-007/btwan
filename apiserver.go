@@ -20,12 +20,23 @@ func init() {
 	router.PanicHandler = panicHandler
 	router.GET("/search/:q", search)
 	router.GET("/search", search)
+	router.GET("/suggest/:q", suggest)
+	router.GET("/suggest", suggest)
 }
 
 // @Private reason
 func panicHandler(w http.ResponseWriter, _ *http.Request, err interface{}) {
 	log.Println(err)
 	renderError(w, "Internal Server Error", 500)
+}
+
+func suggest(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	q := p.ByName("q")
+	if q == "" {
+		q = r.FormValue("q")
+	}
+	list := prefixSuggest(q)
+	renderJSON(w, list, 200)
 }
 
 func search(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -52,8 +63,7 @@ func search(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 	ids := []string{}
 	for _, item := range resp.Hits {
-		info(item.HitNumber, item.ID, item.Score, item.Sort, item.Fields)
-		info(item.String())
+		info(item.HitNumber, item.ID, item.Score, item.Fragments, item.Sort, item.Fields)
 		ids = append(ids, item.ID)
 	}
 	result := SearchResp{}

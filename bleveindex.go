@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/blevesearch/bleve"
 )
@@ -48,6 +49,7 @@ func initIndex() error {
 }
 
 func bleveSearch(q string, from, size int) (*bleve.SearchResult, error) {
+	_suggestChan <- q
 	req := bleve.NewSearchRequest(bleve.NewQueryStringQuery(q))
 	req.Highlight = bleve.NewHighlight()
 	req.From = from
@@ -55,17 +57,27 @@ func bleveSearch(q string, from, size int) (*bleve.SearchResult, error) {
 	return indexer.Search(req)
 }
 func loop() {
-	var count = 0
-	for meta := range _indexChan {
-		if count >= 1000 {
-			count = 0
-		}
-		if meta != nil {
-			err := indexer.Index(strconv.FormatUint(meta.ID, 10), meta)
+	var batch = &bleve.Batch{}
+	for {
+		select {
+		case meta := <-_indexChan:
+			if batch.Size() >= 1000 {
+				err := indexer.Batch(batch)
+				if err != nil {
+					info("index", batch.Size(), err)
+				}
+				batch.Reset()
+			}
+			err := batch.Index(strconv.FormatUint(meta.ID, 10), meta)
 			if err != nil {
 				info("index", len(_indexChan), meta, err)
 			}
-			count++
+		case <-time.After(60 * time.Second):
+			err := indexer.Batch(batch)
+			if err != nil {
+				info("index", batch.Size(), err)
+			}
+			batch.Reset()
 		}
 	}
 }
@@ -76,5 +88,6 @@ func sign() {
 	s := <-c
 	log.Println("退出信号", s)
 	indexer.Close()
+	dumpSuggest()
 	os.Exit(0)
 }
