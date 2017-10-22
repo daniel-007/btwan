@@ -38,7 +38,7 @@ func _init() error {
 	if err := initDB(); err != nil {
 		return err
 	}
-
+	initSuggest()
 	if err := initIndex(); err != nil {
 		return err
 	}
