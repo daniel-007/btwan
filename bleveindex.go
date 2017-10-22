@@ -6,7 +6,6 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
-	"time"
 
 	"github.com/blevesearch/bleve"
 )
@@ -14,7 +13,6 @@ import (
 //var indexMapping *mapping.IndexMappingImpl
 var indexer bleve.Index
 var _indexChan = make(chan *MetadataInfo, 10000)
-var batch *bleve.Batch
 
 func initIndex() error {
 	indexMapping := bleve.NewIndexMapping()
@@ -45,7 +43,6 @@ func initIndex() error {
 	if err != nil {
 		panic(err)
 	}
-	batch = indexer.NewBatch()
 	go loop()
 	go sign()
 	return nil
@@ -60,23 +57,10 @@ func bleveSearch(q string, from, size int) (*bleve.SearchResult, error) {
 	return indexer.Search(req)
 }
 func loop() {
-	var batch = indexer.NewBatch()
-	for {
-		select {
-		case meta := <-_indexChan:
-			if batch.Size() >= 1000 {
-				err := indexer.Batch(batch)
-				info("index", batch.Size(), err)
-				batch.Reset()
-			}
-			err := batch.Index(strconv.FormatUint(meta.ID, 10), meta)
-			if err != nil {
-				info("index", len(_indexChan), meta, err)
-			}
-		case <-time.After(60 * time.Second):
-			err := indexer.Batch(batch)
-			info("index", batch.Size(), err)
-			batch.Reset()
+	for meta := range _indexChan {
+		err := indexer.Index(strconv.FormatUint(meta.ID, 10), meta)
+		if err != nil {
+			info("index", len(_indexChan), meta, err)
 		}
 	}
 }
@@ -86,7 +70,6 @@ func sign() {
 	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2)
 	s := <-c
 	log.Println("退出信号", s)
-	indexer.Batch(batch)
 	indexer.Close()
 	dumpSuggest()
 	os.Exit(0)
