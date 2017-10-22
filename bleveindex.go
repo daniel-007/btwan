@@ -57,7 +57,7 @@ func bleveSearch(q string, from, size int) (*bleve.SearchResult, error) {
 	return indexer.Search(req)
 }
 func loop() {
-	var batch = &bleve.Batch{}
+	var batch = indexer.NewBatch()
 	for {
 		select {
 		case meta := <-_indexChan:
