@@ -14,6 +14,7 @@ import (
 //var indexMapping *mapping.IndexMappingImpl
 var indexer bleve.Index
 var _indexChan = make(chan *MetadataInfo, 10000)
+var batch *bleve.Batch
 
 func initIndex() error {
 	indexMapping := bleve.NewIndexMapping()
@@ -37,12 +38,14 @@ func initIndex() error {
 	}
 	indexMapping.DefaultAnalyzer = "sego"
 	indexer, err = bleve.Open(workdir + "/index")
+
 	if err != nil {
 		indexer, err = bleve.New(workdir+"/index", indexMapping)
 	}
 	if err != nil {
 		panic(err)
 	}
+	batch = indexer.NewBatch()
 	go loop()
 	go sign()
 	return nil
@@ -83,6 +86,7 @@ func sign() {
 	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2)
 	s := <-c
 	log.Println("退出信号", s)
+	indexer.Batch(batch)
 	indexer.Close()
 	dumpSuggest()
 	os.Exit(0)
