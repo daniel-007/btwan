@@ -128,8 +128,8 @@ func (o *owstoni) Search(_ context.Context, req *SearchReq) (*SearchResp, error)
 	}
 	ids := []string{}
 	for _, item := range resp.Hits {
-		info(item.HitNumber, item.ID, item.Score, item.Sort, item.Fields)
-		info(item.String())
+		// info(item.HitNumber, item.ID, item.Score, item.Sort, item.Fields)
+		// info(item.String())
 		ids = append(ids, item.ID)
 	}
 	result := SearchResp{}
