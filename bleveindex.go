@@ -72,5 +72,6 @@ func sign() {
 	log.Println("退出信号", s)
 	indexer.Close()
 	dumpSuggest()
+	_db.Close()
 	os.Exit(0)
 }
