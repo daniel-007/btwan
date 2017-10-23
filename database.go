@@ -19,7 +19,6 @@ func initDB() error {
 	opts := badger.DefaultOptions
 	opts.Dir = file
 	opts.ValueDir = file
-
 	db, err := badger.Open(opts)
 	if err != nil {
 		return err

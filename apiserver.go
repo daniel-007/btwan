@@ -63,7 +63,7 @@ func search(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 	ids := []string{}
 	for _, item := range resp.Hits {
-		info(item.HitNumber, item.ID, item.Score, item.Fragments, item.Sort, item.Fields)
+		//info(item.HitNumber, item.ID, item.Score, item.Fragments, item.Sort, item.Fields)
 		ids = append(ids, item.ID)
 	}
 	result := SearchResp{}
