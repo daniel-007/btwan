@@ -42,7 +42,7 @@ func infohash(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		renderError(w, "获取信息错误", 422)
 		return
 	}
-	renderJSON(w, meta, 200)
+	renderJSON(w, filterMetaInfo(meta, 10), 200)
 }
 func suggest(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	q := p.ByName("q")
@@ -91,27 +91,31 @@ func search(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		return
 	}
 
-	result.Metainfos = filterMetaInfo(ms)
+	result.Metainfos = filterMetaInfoList(ms, 3)
 	renderJSON(w, &result, 200)
 }
 
-func filterMetaInfo(ms []*MetadataInfo) []*MetadataInfo {
+func filterMetaInfoList(ms []*MetadataInfo, size int) []*MetadataInfo {
 	list := make([]*MetadataInfo, 0)
 	for _, m := range ms {
-		l := uint64(0)
-		files := make([]*FileInfo, 0)
-		for i, f := range m.Files {
-			l = l + f.Length
-			if i <= 2 {
-				files = append(files, f)
-			}
-		}
-		m.Length = l
-		m.FileLength = uint64(len(m.Files))
-		m.Files = files
-		list = append(list, m)
+		list = append(list, filterMetaInfo(m, size))
 	}
 	return list
+}
+
+func filterMetaInfo(m *MetadataInfo, size int) *MetadataInfo {
+	var l uint64
+	files := make([]*FileInfo, 0)
+	for i, f := range m.Files {
+		l = l + f.Length
+		if i < size {
+			files = append(files, f)
+		}
+	}
+	m.Length = l
+	m.FileLength = uint64(len(m.Files))
+	m.Files = files
+	return m
 }
 
 func renderJSON(w http.ResponseWriter, ret interface{}, code int) {
