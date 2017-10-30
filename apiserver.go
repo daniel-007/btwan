@@ -108,6 +108,7 @@ func filterMetaInfo(ms []*MetadataInfo) []*MetadataInfo {
 		}
 		m.Length = l
 		m.FileLength = uint64(len(m.Files))
+		m.Files = files
 		list = append(list, m)
 	}
 	return list
