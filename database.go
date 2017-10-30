@@ -66,6 +66,7 @@ func findMetadata(ids []string) (tms []*MetadataInfo, err error) {
 				return err
 			}
 			t.ID, _ = strconv.ParseUint(id, 10, 64)
+			info(id, t.ID, t)
 			tms = append(tms, t)
 		}
 		return nil
