@@ -30,6 +30,7 @@ message MetadataInfo {
 	uint64 thumbs = 11;
 	uint64 seeders = 12;
 	uint64 downloaders = 13;
+	uint64 fileLength = 15;
 }
 
 

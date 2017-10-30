@@ -90,8 +90,27 @@ func search(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		renderError(w, "查询错误", 422)
 		return
 	}
-	result.Metainfos = ms
+
+	result.Metainfos = filterMetaInfo(ms)
 	renderJSON(w, &result, 200)
+}
+
+func filterMetaInfo(ms []*MetadataInfo) []*MetadataInfo {
+	list := make([]*MetadataInfo, 0)
+	for _, m := range ms {
+		l := uint64(0)
+		files := make([]*FileInfo, 0)
+		for i, f := range m.Files {
+			l = l + f.Length
+			if i <= 2 {
+				files = append(files, f)
+			}
+		}
+		m.Length = l
+		m.FileLength = uint64(len(m.Files))
+		list = append(list, m)
+	}
+	return list
 }
 
 func renderJSON(w http.ResponseWriter, ret interface{}, code int) {
